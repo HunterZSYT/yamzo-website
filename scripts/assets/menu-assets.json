@@ -1,0 +1,138 @@
+{
+  "authoritativeMenu": "E:\\Yamzo\\Menu & Images\\Full Menu.pdf",
+  "sourceDirectory": "E:\\Yamzo\\Menu & Images\\All Items",
+  "pricingPolicy": "Yamzo direct-menu prices are authoritative; marketplace markups are excluded.",
+  "deduplicationPolicy": "Each unique local image is copied once. Items photographed together reuse the same public asset.",
+  "ambiguities": [
+    "The two momo source filenames are semantically reversed when compared with the labeled Full Menu page.",
+    "Naga Chicken Momo and Twin Flavor Momo.png visually contains the round chicken/chicken-cheese momos and is therefore published as momo-chicken-and-cheese.png.",
+    "Chicken and Chicken Cheese Momo.png visually contains the crescent naga/twin-flavor momos and is therefore published as momo-naga-and-twin-flavor.png.",
+    "Fried Rice Meal and the six individual extra sauces have no dedicated source image; their dataset image is explicitly null."
+  ],
+  "assets": {
+    "bengali-fish-and-chips.png": {
+      "source": "Bengali Fish and Chips.png",
+      "usedBy": ["menu_item_bengali_fish_and_chips"]
+    },
+    "best-fish-and-chips.png": {
+      "source": "The best fish in chips in Uttara.png",
+      "usedBy": ["menu_item_best_fish_and_chips"]
+    },
+    "chicken-chow-mein.png": {
+      "source": "Chicken Chow Mein.png",
+      "usedBy": ["menu_item_chicken_chow_mein"]
+    },
+    "chicken-katsu-with-fries.png": {
+      "source": "Chicken Katsu with Fries.png",
+      "usedBy": ["menu_item_chicken_katsu_with_fries"]
+    },
+    "chicken-nanban.png": {
+      "source": "Chicken Nan Baan.png",
+      "usedBy": ["menu_item_chicken_nanban"]
+    },
+    "chicken-popcorn.png": {
+      "source": "Chicken Popcorn.png",
+      "usedBy": ["menu_item_chicken_popcorn"]
+    },
+    "chicken-tempura.png": {
+      "source": "Chicen Tempura.png",
+      "usedBy": ["menu_item_chicken_tempura"]
+    },
+    "crab-masala-specials.png": {
+      "source": "Spicy and Signature Crab Masala.png",
+      "usedBy": ["menu_item_spicy_crab_masala", "menu_item_signature_crab_masala"]
+    },
+    "cream-of-mushroom-soup.png": {
+      "source": "Cream of Mushroom Soup.png",
+      "usedBy": ["menu_item_cream_of_mushroom_soup"]
+    },
+    "crispy-prawn.png": {
+      "source": "Crispy Prawn.png",
+      "usedBy": ["menu_item_crispy_prawn"]
+    },
+    "danish-fish-and-chips.png": {
+      "source": "Danish fish and chips.png",
+      "usedBy": ["menu_item_danish_fish_and_chips"]
+    },
+    "dumpling-with-chili-soup.png": {
+      "source": "Dumpling with chili soup.png",
+      "usedBy": ["menu_item_dumpling_with_chili_soup"]
+    },
+    "fish-nugget.png": {
+      "source": "Fish Nugget.png",
+      "usedBy": ["menu_item_fish_nugget"]
+    },
+    "fried-calamari.png": {
+      "source": "Fried Calamari.png",
+      "usedBy": ["menu_item_fried_calamari"]
+    },
+    "garlic-chicken-fried-rice.png": {
+      "source": "Garlic Chicken Fried Rice.png",
+      "usedBy": ["menu_item_garlic_chicken_fried_rice"]
+    },
+    "garlic-mushroom.jpeg": {
+      "source": "Garlic Mushroom.jpeg",
+      "usedBy": ["menu_item_garlic_mushroom"]
+    },
+    "golden-fish-finger.png": {
+      "source": "Golden Fish Finger.png",
+      "usedBy": ["menu_item_golden_fish_finger"]
+    },
+    "grill-calamari.png": {
+      "source": "Grill Calamari.png",
+      "usedBy": ["menu_item_grill_calamari"]
+    },
+    "hot-fry-crab.png": {
+      "source": "Hot Fry Crab.png",
+      "usedBy": ["menu_item_hot_fry_crab"]
+    },
+    "loitta-fry.png": {
+      "source": "Loitta Fry.png",
+      "usedBy": ["menu_item_loitta_fry"]
+    },
+    "masala-french-fries.png": {
+      "source": "Masala French Fries.png",
+      "usedBy": ["menu_item_masala_french_fries"]
+    },
+    "momo-chicken-and-cheese.png": {
+      "source": "Naga Chicken Momo and Twin Flavor Momo.png",
+      "usedBy": ["menu_item_chicken_momo", "menu_item_chicken_cheese_momo"]
+    },
+    "momo-naga-and-twin-flavor.png": {
+      "source": "Chicken and Chicken Cheese Momo.png",
+      "usedBy": ["menu_item_naga_chicken_momo", "menu_item_twin_flavor_momo"]
+    },
+    "octopus-specials.png": {
+      "source": "All Octopus.png",
+      "usedBy": ["menu_item_octopus_fry", "menu_item_bbq_octopus_masala", "menu_item_signature_octopus_masala"]
+    },
+    "seafood-chilli-pasta.png": {
+      "source": "Seafood Chilli Pasta.png",
+      "usedBy": ["menu_item_seafood_chilli_pasta"]
+    },
+    "seafood-rice-bowl.jpeg": {
+      "source": "Sea-food Rice Bowl.jpeg",
+      "usedBy": ["menu_item_seafood_rice_bowl"]
+    },
+    "shingara-assortment.png": {
+      "source": "All Shingara.png",
+      "usedBy": ["menu_item_naga_shingara", "menu_item_chicken_shingara", "menu_item_mutton_liver_shingara", "menu_item_shingara_combo"]
+    },
+    "signature-seafood-soup.png": {
+      "source": "Signature Sea-food soup.png",
+      "usedBy": ["menu_item_signature_seafood_soup"]
+    },
+    "swiss-fish-and-chips.png": {
+      "source": "Swiss fish and chips.png",
+      "usedBy": ["menu_item_swiss_fish_and_chips"]
+    },
+    "thai-thick-soup.jpeg": {
+      "source": "Thai Thick Soup.jpeg",
+      "usedBy": ["menu_item_thai_thick_soup"]
+    },
+    "white-cream-pasta.png": {
+      "source": "White Cream Pasta.png",
+      "usedBy": ["menu_item_white_cream_pasta"]
+    }
+  }
+}

@@ -1,0 +1,2 @@
+-- Reference data is versioned in migration 009 so local resets and production
+-- deploys receive identical defaults. Keep this file for developer-only data.
