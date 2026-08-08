@@ -645,15 +645,15 @@
 }
 
 .google-mark {
-  display: grid;
-  width: 1.35rem;
-  height: 1.35rem;
-  place-items: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4285f4 0 35%, #34a853 35% 55%, #fbbc05 55% 75%, #ea4335 75%);
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
+  display: inline-flex;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+}
+
+.google-mark svg {
+  width: 100%;
+  height: 100%;
 }
 
 .auth-divider {
