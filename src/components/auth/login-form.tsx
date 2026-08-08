@@ -20,6 +20,9 @@ type LoginFormProps = {
 
 type Step = "email" | "code";
 
+const verificationCodePattern = /^\d{6,8}$/;
+const verificationCodeMaxLength = 8;
+
 function GoogleMark() {
   return (
     <svg viewBox="0 0 18 18" focusable="false">
@@ -86,7 +89,7 @@ export function LoginForm({
       }
 
       setStep("code");
-      setNotice(`A 6-digit sign-in code was sent to ${email.trim()}.`);
+      setNotice(`A verification code was sent to ${email.trim()}.`);
     } catch {
       setError(getFriendlyAuthError());
     } finally {
@@ -98,8 +101,8 @@ export function LoginForm({
     event.preventDefault();
     setError(null);
 
-    if (!/^\d{6}$/.test(code)) {
-      setError("Enter the complete 6-digit code from your email.");
+    if (!verificationCodePattern.test(code)) {
+      setError("Enter the complete verification code from your email.");
       return;
     }
 
@@ -227,22 +230,26 @@ export function LoginForm({
       ) : (
         <form onSubmit={verifyCode} className="auth-form">
           <div className="auth-field">
-            <Label htmlFor="code">6-digit code</Label>
+            <Label htmlFor="code">Verification code</Label>
             <Input
               id="code"
               name="code"
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              pattern="[0-9]{6}"
-              maxLength={6}
+              pattern="[0-9]{6,8}"
+              maxLength={verificationCodeMaxLength}
               required
               value={code}
               onChange={(event) =>
-                setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                setCode(
+                  event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, verificationCodeMaxLength),
+                )
               }
               className="auth-code-input"
-              placeholder="000000"
+              placeholder="00000000"
               disabled={busy}
             />
           </div>

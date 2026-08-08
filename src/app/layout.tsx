@@ -29,6 +29,22 @@ export const metadata: Metadata = {
   description:
     "Order Yamzo seafood favourites for delivery across Uttara with simple checkout and live order tracking.",
   applicationName: "Yamzo Uttara",
+  icons: {
+    icon: [
+      {
+        url: "/brand/yamzo-logo.png",
+        type: "image/png",
+        sizes: "1000x1000",
+      },
+    ],
+    apple: [
+      {
+        url: "/brand/yamzo-logo.png",
+        type: "image/png",
+        sizes: "1000x1000",
+      },
+    ],
+  },
   openGraph: {
     type: "website",
     locale: "en_BD",
