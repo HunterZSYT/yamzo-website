@@ -16,13 +16,13 @@ export type CartLine = {
 export const checkoutSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(100),
   sector: z.string().trim().regex(/^\d{1,2}$/, "Enter a valid Uttara sector"),
-  road: z.string().trim().min(1, "Road number is required").max(30),
-  house: z.string().trim().min(1, "House number is required").max(30),
+  road: z.string().trim().regex(/^\d+$/, "Road number must contain digits only").max(30),
+  house: z.string().trim().regex(/^\d+$/, "House number must contain digits only").max(30),
   flat: z.string().trim().min(1, "Flat number is required").max(30),
   phone: z
     .string()
     .trim()
-    .transform((value) => value.replace(/[^\d+]/g, ""))
+    .regex(/^\+?\d+$/, "Enter a valid Bangladesh mobile number")
     .refine(
       (value) => /^(?:\+?8801|01)[3-9]\d{8}$/.test(value),
       "Enter a valid Bangladesh mobile number",

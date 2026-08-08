@@ -4,7 +4,7 @@ const bdPhoneSchema = z
   .string()
   .trim()
   .max(32)
-  .transform((value) => value.replace(/[^\d+]/g, ""))
+  .regex(/^\+?\d+$/, "Enter a valid Bangladesh mobile number.")
   .refine(
     (value) => /^(?:\+?8801|01)[3-9]\d{8}$/.test(value),
     "Enter a valid Bangladesh mobile number.",
@@ -61,8 +61,8 @@ export const createOrderRequestSchema = z
           .union([z.string(), z.number().int()])
           .transform((value) => Number(value))
           .pipe(z.number().int().min(1).max(18)),
-        road: z.string().trim().min(1).max(40),
-        house: z.string().trim().min(1).max(40),
+        road: z.string().trim().regex(/^\d+$/).max(40),
+        house: z.string().trim().regex(/^\d+$/).max(40),
         flat: z.string().trim().min(1).max(40),
         phone: bdPhoneSchema,
         notes: z.string().trim().max(500).optional().default(""),

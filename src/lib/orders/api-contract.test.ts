@@ -16,7 +16,7 @@ describe("order API contracts", () => {
         road: "20",
         house: "80",
         flat: "3A",
-        phone: "01761 737584",
+        phone: "01761737584",
       },
       lines: [
         {
@@ -72,6 +72,52 @@ describe("order API contracts", () => {
         }],
       }).success,
     ).toBe(false);
+  });
+
+  it("rejects letters in digit-only delivery fields while accepting an alphanumeric flat", () => {
+    const validLine = {
+      menuItemId: "052f9516-3bc9-54da-8e83-9d11b93363fc",
+      variantId: null,
+      modifierOptionIds: [],
+      quantity: 1,
+    };
+    const customer = {
+      fullName: "Junaed Saimon",
+      sector: 11,
+      road: "20",
+      house: "80",
+      flat: "3A",
+      phone: "+8801761737584",
+    };
+
+    expect(
+      createOrderRequestSchema.safeParse({
+        customer: { ...customer, road: "20A" },
+        lines: [validLine],
+        expectedSubtotalMinor: 19500,
+      }).success,
+    ).toBe(false);
+    expect(
+      createOrderRequestSchema.safeParse({
+        customer: { ...customer, house: "80B" },
+        lines: [validLine],
+        expectedSubtotalMinor: 19500,
+      }).success,
+    ).toBe(false);
+    expect(
+      createOrderRequestSchema.safeParse({
+        customer: { ...customer, phone: "+88017letter61737584" },
+        lines: [validLine],
+        expectedSubtotalMinor: 19500,
+      }).success,
+    ).toBe(false);
+    expect(
+      createOrderRequestSchema.safeParse({
+        customer,
+        lines: [validLine],
+        expectedSubtotalMinor: 19500,
+      }).data?.customer.flat,
+    ).toBe("3A");
   });
 
   it("keeps phone lookup separate from full-order authorization", () => {

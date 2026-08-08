@@ -63,6 +63,7 @@ import {
   type CartLine,
   type CheckoutDetails,
 } from "@/lib/orders/types";
+import { normalizeCheckoutInput } from "@/lib/orders/checkout-input";
 import type { GoogleReviewSnapshot } from "@/lib/reviews/types";
 import type {
   StorefrontBanner,
@@ -792,7 +793,36 @@ function CheckoutDialog({ open, onOpenChange, locale, lines, mode, requiresTurns
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = useState(0);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
-  const update = (key: keyof CheckoutDetails, value: string) => { setValues((current) => ({ ...current, [key]: value })); setErrors((current) => ({ ...current, [key]: "" })); };
+  const update = (key: keyof CheckoutDetails, value: string) => {
+    const normalizedValue = normalizeCheckoutInput(key, value);
+    setValues((current) => ({ ...current, [key]: normalizedValue }));
+    setErrors((current) => ({ ...current, [key]: "" }));
+  };
+
+  const handleConstrainedKeyDown = (key: keyof CheckoutDetails, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) return;
+
+    const input = event.currentTarget;
+    const selectionStart = input.selectionStart ?? input.value.length;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+    const nextValue = `${input.value.slice(0, selectionStart)}${event.key}${input.value.slice(selectionEnd)}`;
+
+    if (nextValue !== normalizeCheckoutInput(key, nextValue)) event.preventDefault();
+  };
+
+  const handleConstrainedPaste = (key: keyof CheckoutDetails, event: React.ClipboardEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const selectionStart = input.selectionStart ?? input.value.length;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+    const pastedText = event.clipboardData.getData("text");
+    const nextValue = `${input.value.slice(0, selectionStart)}${pastedText}${input.value.slice(selectionEnd)}`;
+    const normalizedValue = normalizeCheckoutInput(key, nextValue);
+
+    if (nextValue === normalizedValue) return;
+
+    event.preventDefault();
+    update(key, normalizedValue);
+  };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -821,13 +851,13 @@ function CheckoutDialog({ open, onOpenChange, locale, lines, mode, requiresTurns
     }
   };
 
-  const fields: Array<{ key: keyof CheckoutDetails; label: string; autoComplete: string; type: "text" | "number" | "tel"; inputMode?: "numeric" | "tel"; placeholder: string; min?: number; max?: number }> = [
-    { key: "fullName", label: t.name, autoComplete: "name", type: "text", placeholder: "Junaed Saimon" },
-    { key: "sector", label: t.sector, autoComplete: "address-level3", type: "number", inputMode: "numeric", placeholder: "11", min: 1, max: 18 },
-    { key: "road", label: t.road, autoComplete: "address-line2", type: "text", placeholder: "20" },
-    { key: "house", label: t.house, autoComplete: "address-line1", type: "text", placeholder: "80" },
-    { key: "flat", label: t.flat, autoComplete: "address-line3", type: "text", placeholder: "3A" },
-    { key: "phone", label: t.phone, autoComplete: "tel", type: "tel", inputMode: "tel", placeholder: "01XXXXXXXXX" },
+  const fields: Array<{ key: keyof CheckoutDetails; label: string; autoComplete: string; type: "text" | "tel"; inputMode?: "numeric" | "tel"; placeholder: string; pattern?: string; maxLength?: number; constrained?: boolean }> = [
+    { key: "fullName", label: t.name, autoComplete: "name", type: "text", placeholder: "Junaed Saimon", maxLength: 100 },
+    { key: "sector", label: t.sector, autoComplete: "address-level3", type: "text", inputMode: "numeric", placeholder: "11", pattern: "[0-9]*", maxLength: 2, constrained: true },
+    { key: "road", label: t.road, autoComplete: "address-line2", type: "text", inputMode: "numeric", placeholder: "20", pattern: "[0-9]*", maxLength: 30, constrained: true },
+    { key: "house", label: t.house, autoComplete: "address-line1", type: "text", inputMode: "numeric", placeholder: "80", pattern: "[0-9]*", maxLength: 30, constrained: true },
+    { key: "flat", label: t.flat, autoComplete: "address-line3", type: "text", placeholder: "3A", maxLength: 30 },
+    { key: "phone", label: t.phone, autoComplete: "tel", type: "tel", inputMode: "tel", placeholder: "01XXXXXXXXX", pattern: "[+0-9]*", maxLength: 14, constrained: true },
   ];
 
   return (
@@ -840,7 +870,7 @@ function CheckoutDialog({ open, onOpenChange, locale, lines, mode, requiresTurns
             {fields.map((field) => (
               <div key={field.key} className={cn("grid gap-1.5", field.key === "fullName" && "sm:col-span-2")}>
                 <Label htmlFor={`checkout-${field.key}`}>{field.label}<span className="ml-1 text-destructive">*</span></Label>
-                <Input id={`checkout-${field.key}`} name={field.key} type={field.type} value={values[field.key]} onChange={(event) => update(field.key, event.target.value)} autoComplete={field.autoComplete} inputMode={field.inputMode} min={field.min} max={field.max} step={field.type === "number" ? 1 : undefined} placeholder={field.placeholder} aria-invalid={Boolean(errors[field.key])} aria-describedby={errors[field.key] ? `checkout-${field.key}-error` : undefined} className="min-h-12" />
+                <Input id={`checkout-${field.key}`} name={field.key} type={field.type} value={values[field.key]} onChange={(event) => update(field.key, event.target.value)} onKeyDown={field.constrained ? (event) => handleConstrainedKeyDown(field.key, event) : undefined} onPaste={field.constrained ? (event) => handleConstrainedPaste(field.key, event) : undefined} autoComplete={field.autoComplete} inputMode={field.inputMode} pattern={field.pattern} maxLength={field.maxLength} placeholder={field.placeholder} aria-invalid={Boolean(errors[field.key])} aria-describedby={errors[field.key] ? `checkout-${field.key}-error` : undefined} className="min-h-12" />
                 {errors[field.key] ? <p id={`checkout-${field.key}-error`} className="text-xs font-semibold text-destructive">{errors[field.key]}</p> : null}
               </div>
             ))}
