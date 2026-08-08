@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 type LoginFormProps = {
   nextPath: string;
   supabaseConfigured: boolean;
+  googleAuthEnabled: boolean;
 };
 
 type Step = "email" | "code";
@@ -49,6 +50,7 @@ function getFriendlyAuthError(): string {
 export function LoginForm({
   nextPath,
   supabaseConfigured,
+  googleAuthEnabled,
 }: LoginFormProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
@@ -171,24 +173,28 @@ export function LoginForm({
         preview the website while it is under construction.
       </p>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="auth-google-button"
-        disabled={busy}
-        onClick={signInWithGoogle}
-      >
-        <span className="google-mark" aria-hidden="true">
-          <GoogleMark />
-        </span>
-        Continue with Google
-      </Button>
+      {googleAuthEnabled ? (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            className="auth-google-button"
+            disabled={busy}
+            onClick={signInWithGoogle}
+          >
+            <span className="google-mark" aria-hidden="true">
+              <GoogleMark />
+            </span>
+            Continue with Google
+          </Button>
 
-      <div className="auth-divider">
-        <Separator />
-        <span>or use email</span>
-        <Separator />
-      </div>
+          <div className="auth-divider">
+            <Separator />
+            <span>or use email</span>
+            <Separator />
+          </div>
+        </>
+      ) : null}
 
       {step === "email" ? (
         <form onSubmit={sendCode} className="auth-form">

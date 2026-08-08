@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { hasSupabaseConfig } from "@/lib/env";
+import { hasSupabaseConfig, isGoogleAuthEnabled } from "@/lib/env";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export const metadata: Metadata = {
@@ -45,6 +45,7 @@ export default async function LoginPage({
       <LoginForm
         nextPath={nextPath}
         supabaseConfigured={hasSupabaseConfig()}
+        googleAuthEnabled={hasSupabaseConfig() && isGoogleAuthEnabled()}
       />
     </main>
   );

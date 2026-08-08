@@ -6,6 +6,18 @@ export function hasSupabaseConfig(): boolean {
   return Boolean(supabaseUrl && supabasePublishableKey);
 }
 
+/**
+ * OAuth providers are configured in Supabase, outside this repository. Keep
+ * the Google control out of the public UI until its provider and callback URL
+ * have both been configured, rather than sending customers to a failed flow.
+ */
+export function isGoogleAuthEnabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED?.trim().toLowerCase() ===
+    "true"
+  );
+}
+
 export function getSupabaseConfig(): {
   url: string;
   publishableKey: string;
