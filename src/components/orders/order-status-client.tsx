@@ -24,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
+import { normalizeBangladeshPhoneInput } from "@/lib/orders/checkout-input";
 import type { OrderStatus, OrderSummary } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +104,7 @@ export function OrderStatusClient({
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const lastPhone = sessionStorage.getItem("yamzo:last-phone");
-      if (lastPhone) setPhone(lastPhone);
+      if (lastPhone) setPhone(normalizeBangladeshPhoneInput(lastPhone));
       if (initialOrder) void fetchTrackedOrder(initialOrder);
     });
     const timer = initialOrder
@@ -180,7 +181,7 @@ export function OrderStatusClient({
             <Card className="mt-6 border-sky-100 shadow-[0_12px_40px_rgba(8,42,68,.07)]">
               <CardContent>
                 <form onSubmit={lookup} className="grid gap-3">
-                  <div className="grid gap-1.5"><Label htmlFor="order-phone">Phone number</Label><div className="relative"><Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input id="order-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="01XXXXXXXXX" required className="min-h-12 pl-9" /></div></div>
+                  <div className="grid gap-1.5"><Label htmlFor="order-phone">Phone number</Label><div className="relative"><Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input id="order-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(normalizeBangladeshPhoneInput(event.target.value))} placeholder="01XXXXXXXXX" required className="min-h-12 pl-9" /></div></div>
                   {!authenticated && turnstileSiteKey ? (
                     <TurnstileWidget
                       siteKey={turnstileSiteKey}

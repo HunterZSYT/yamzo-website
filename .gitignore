@@ -15,6 +15,7 @@ next-env.d.ts
 # Local agent and verification artifacts
 .ai-task/
 .codegraph/
+.serena/
 .understand-anything/
 playwright-report/
 test-results/
