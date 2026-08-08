@@ -6,6 +6,46 @@ import { getSupabaseConfig } from "@/lib/env";
 
 const MODERN_SECRET_KEY_PREFIX = "sb_secret_";
 
+type AdminKeyEnvironment = Readonly<Record<string, string | undefined>>;
+
+function getEnvironmentValue(
+  environment: AdminKeyEnvironment,
+  name: "SUPABASE_SECRET_KEY" | "SUPABASE_SERVICE_ROLE_KEY",
+): string | undefined {
+  const value = environment[name]?.trim();
+  return value || undefined;
+}
+
+/**
+ * Select the privileged server key without ever making it available to client
+ * code. A current secret key is preferred. The Vercel Supabase integration
+ * supplies a server-only service-role key, which is a compatible fallback when
+ * the older secret-key environment variable is stale or absent.
+ */
+export function resolveSupabaseAdminKey(
+  environment: AdminKeyEnvironment = process.env,
+): string {
+  const modernSecretKey = getEnvironmentValue(
+    environment,
+    "SUPABASE_SECRET_KEY",
+  );
+  if (modernSecretKey?.startsWith(MODERN_SECRET_KEY_PREFIX)) {
+    return modernSecretKey;
+  }
+
+  const legacyServiceRoleKey = getEnvironmentValue(
+    environment,
+    "SUPABASE_SERVICE_ROLE_KEY",
+  );
+  if (legacyServiceRoleKey) {
+    return legacyServiceRoleKey;
+  }
+
+  throw new Error(
+    "Supabase server access is not configured. Set SUPABASE_SECRET_KEY to a modern sb_secret_* key or provide SUPABASE_SERVICE_ROLE_KEY.",
+  );
+}
+
 function isSupabaseRestRequest(input: RequestInfo | URL): boolean {
   const url =
     typeof input === "string"
@@ -64,12 +104,7 @@ export function createAdminRestFetch(
  * belongs in Vercel's encrypted environment and must not be logged.
  */
 export function createAdminClient() {
-  const secretKey = process.env.SUPABASE_SECRET_KEY?.trim();
-  if (!secretKey) {
-    throw new Error(
-      "Supabase server access is not configured. Set SUPABASE_SECRET_KEY.",
-    );
-  }
+  const secretKey = resolveSupabaseAdminKey();
 
   const { url } = getSupabaseConfig();
   return createClient(url, secretKey, {

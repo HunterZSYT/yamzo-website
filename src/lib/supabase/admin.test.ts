@@ -3,7 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 
 vi.mock("server-only", () => ({}));
 
-import { createAdminRestFetch } from "@/lib/supabase/admin";
+import {
+  createAdminRestFetch,
+  resolveSupabaseAdminKey,
+} from "@/lib/supabase/admin";
 
 const modernSecretKey = "sb_secret_test_admin_key";
 const legacyServiceRoleKey =
@@ -46,6 +49,30 @@ describe("Supabase admin REST fetch compatibility", () => {
     const headers = new Headers(init?.headers);
     expect(headers.get("apikey")).toBe(modernSecretKey);
     expect(headers.has("authorization")).toBe(false);
+  });
+
+  it("prefers a modern secret key over the legacy service-role fallback", () => {
+    expect(
+      resolveSupabaseAdminKey({
+        SUPABASE_SECRET_KEY: modernSecretKey,
+        SUPABASE_SERVICE_ROLE_KEY: legacyServiceRoleKey,
+      }),
+    ).toBe(modernSecretKey);
+  });
+
+  it("falls back to the integration service-role key when the secret key is stale", () => {
+    expect(
+      resolveSupabaseAdminKey({
+        SUPABASE_SECRET_KEY: "stale-legacy-value",
+        SUPABASE_SERVICE_ROLE_KEY: legacyServiceRoleKey,
+      }),
+    ).toBe(legacyServiceRoleKey);
+  });
+
+  it("fails closed when neither server-only key is available", () => {
+    expect(() => resolveSupabaseAdminKey({})).toThrow(
+      "Supabase server access is not configured",
+    );
   });
 
   it("applies the compatibility layer to a real Supabase REST query", async () => {
