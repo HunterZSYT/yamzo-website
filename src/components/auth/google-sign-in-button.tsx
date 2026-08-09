@@ -18,7 +18,7 @@ type GoogleSignInButtonProps = {
 
 export function GoogleMark() {
   return (
-    <svg viewBox="0 0 18 18" focusable="false">
+    <svg viewBox="0 0 18 18" focusable="false" aria-hidden="true">
       <path
         fill="#EA4335"
         d="M17.64 9.2045c0-.638-.0573-1.2518-.1636-1.8409H9v3.4818h4.8436c-.2086 1.125-.8427 2.0782-1.796 2.7155v2.2582h2.9082c1.7027-1.5673 2.6842-3.8741 2.6842-6.6146Z"

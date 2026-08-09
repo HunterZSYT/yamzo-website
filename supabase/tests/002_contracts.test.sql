@@ -42,11 +42,9 @@ select is(
   'content editor cannot manage staff'
 );
 select is(
-  (select count(*) from app.role_permissions rp
-   join app.roles r on r.id = rp.role_id
-   where r.code = 'cashier' and rp.permission_code = 'orders.test_delete'),
+  (select count(*) from app.permissions where code = 'orders.test_delete'),
   0::bigint,
-  'cashier cannot hard-delete test orders'
+  'the retired test-order deletion permission is absent'
 );
 
 select is(

@@ -106,12 +106,15 @@ runtime row, and returns the tracking token only in the successful response.
   selection, full line-item replacement, discount/delivery adjustments, and
   optimistic versioning. The server recalculates totals, appends a non-PII
   before/after audit, records a status event when appropriate, and publishes a
-  new website snapshot. It creates receipt/KOT print jobs only when an order
+  new website snapshot. Moving a website order to `cancelled` requires a
+  concise audited reason. It creates receipt/KOT print jobs only when an order
   first enters `accepted`.
 - `api.archive_live_website_order(order_id, expected_version, note) -> jsonb`
   requires `orders.manage`. It cancels non-terminal live orders as needed and
-  archives them without deleting their fulfillment or audit record. It is the
-  only live-order delete semantic.
+  retains them outside the active queue without deleting their fulfillment or
+  audit record. All website orders, including test orders, are retained; test
+  orders may instead be moved to `cancelled` through the versioned admin update
+  contract.
 - `api.list_order_arrivals_for_operations(after_placed_at?, after_order_id?,
   limit = 20) -> jsonb` requires `orders.read` and returns a compact PII-free
   keyset feed of `pending_acceptance` website orders for the website-admin
@@ -166,10 +169,10 @@ runtime row, and returns the tracking token only in the successful response.
 - `api.claim_print_jobs(terminal_id, limit = 10, lease_seconds = 90) -> jsonb`
   and `api.ack_print_job(...)` remain internal print-queue compatibility
   contracts. New terminal traffic uses the signed print acknowledgement route.
-- `api.hard_delete_test_order(order_id, expected_reference, reason_code,
-  confirmation) -> boolean` requires `orders.test_delete`, exact confirmation,
-  and writes a non-PII tombstone. Production orders are trigger-protected from
-  hard deletion.
+- Order deletion is globally disabled. The retained
+  `api.hard_delete_test_order(...)` compatibility stub has no browser or
+  service-role execution grant and raises `ORDER_DELETION_DISABLED`; the
+  `app.orders` delete trigger rejects direct deletion for every order mode.
 
 POS device secrets are not stored in application code or seeded here. A trusted
 server transport must authenticate the terminal before using the `service_role`

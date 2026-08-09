@@ -125,4 +125,18 @@ describe("admin website-order contract", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("requires a concise reason when cancelling an order", () => {
+    const result = adminOrderMutationInputSchema.safeParse({
+      orderId,
+      expectedVersion: 3,
+      toStatus: "cancelled",
+      discountMinor: null,
+      deliveryFeeMinor: null,
+      note: null,
+      items: null,
+    });
+
+    expect(result.success).toBe(false);
+  });
 });

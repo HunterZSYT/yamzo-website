@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, type ComponentProps, useMemo, useRef, useState } from "react";
+import { Fragment, type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BadgePercent,
@@ -260,7 +260,7 @@ function StoreHeader({
 }) {
   const t = copy[locale];
   return (
-    <header className="sticky top-0 z-40 border-b border-sky-100/90 bg-white/92 backdrop-blur-xl">
+    <header data-site-header className="sticky top-0 z-40 border-b border-sky-100/90 bg-white/92 backdrop-blur-xl">
       <div className="mx-auto flex h-17 max-w-[90rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-h-11 items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
           <Image src="/brand/yamzo-logo.png" alt="Yamzo Uttara" width={52} height={52} priority className="h-11 w-11 rounded-xl object-contain" />
@@ -899,6 +899,8 @@ export function Storefront({ access, reviews, catalog, merchandising }: {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [menuControlsPinned, setMenuControlsPinned] = useState(false);
+  const menuControlsRef = useRef<HTMLDivElement>(null);
   const t = copy[locale];
   const menuCategories = catalog.categories;
   const menuItems = catalog.items;
@@ -936,6 +938,34 @@ export function Storefront({ access, reviews, catalog, merchandising }: {
   });
   const hasHeroSection = homeSections.some((section) => section.kind === "banner");
   const hasMenuSection = homeSections.some((section) => section.kind === "menu");
+
+  useEffect(() => {
+    let frame: number | null = null;
+
+    const updatePinnedState = () => {
+      frame = null;
+      const controls = menuControlsRef.current;
+      const header = document.querySelector<HTMLElement>("[data-site-header]");
+      if (!controls || !header) return;
+
+      const nextPinned = controls.getBoundingClientRect().top <= header.getBoundingClientRect().height + 1;
+      setMenuControlsPinned((current) => current === nextPinned ? current : nextPinned);
+    };
+
+    const schedulePinnedStateUpdate = () => {
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(updatePinnedState);
+    };
+
+    updatePinnedState();
+    window.addEventListener("scroll", schedulePinnedStateUpdate, { passive: true });
+    window.addEventListener("resize", schedulePinnedStateUpdate);
+    return () => {
+      window.removeEventListener("scroll", schedulePinnedStateUpdate);
+      window.removeEventListener("resize", schedulePinnedStateUpdate);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   const addToCart = (item: MenuItem, selection: ProductSelection) => {
     const variant = item.pricing.kind === "variants" ? item.pricing.variants.find((entry) => entry.id === selection.variantId) : null;
@@ -1002,18 +1032,28 @@ export function Storefront({ access, reviews, catalog, merchandising }: {
             {section.kind === "menu" ? (
         <section id="menu" className="scroll-mt-20 border-t border-sky-100 bg-white" aria-labelledby={`home-section-${section.id}`}>
           <div className="mx-auto max-w-[90rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-            <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-primary">{locale === "bn" ? t.fullMenu : "Everything Yamzo"}</p>
-                <h2 id={`home-section-${section.id}`} className="mt-2 text-3xl font-black tracking-[-.05em] sm:text-4xl">{localizedOr(section.title, locale, t.fullMenu)}</h2>
-                {getLocalizedText(section.subtitle, locale) ? <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{getLocalizedText(section.subtitle, locale)}</p> : null}
+            <div
+              ref={menuControlsRef}
+              data-menu-controls
+              data-pinned={menuControlsPinned || undefined}
+              className={cn(
+                "sticky top-[4.25rem] z-30 -mx-4 bg-white px-4 py-5 transition-[box-shadow,border-color,background-color] duration-200 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0",
+                menuControlsPinned && "border-y border-sky-100/90 bg-white/95 shadow-[0_12px_30px_rgba(8,42,68,.08)] backdrop-blur-xl",
+              )}
+            >
+              <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.14em] text-primary">{locale === "bn" ? t.fullMenu : "Everything Yamzo"}</p>
+                  <h2 id={`home-section-${section.id}`} className="mt-2 text-3xl font-black tracking-[-.05em] sm:text-4xl">{localizedOr(section.title, locale, t.fullMenu)}</h2>
+                  {getLocalizedText(section.subtitle, locale) ? <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{getLocalizedText(section.subtitle, locale)}</p> : null}
+                </div>
+                <div className="relative w-full lg:max-w-sm"><Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} aria-label={t.search} className="min-h-12 rounded-xl bg-[#f6fbfe] pl-10" /></div>
               </div>
-              <div className="relative w-full lg:max-w-sm"><Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} aria-label={t.search} className="min-h-12 rounded-xl bg-[#f6fbfe] pl-10" /></div>
+              <nav className="mt-6 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label={locale === "bn" ? t.menu : "Menu categories"}>
+                <Button type="button" aria-pressed={category === "all"} variant={category === "all" ? "default" : "outline"} className="min-h-11 shrink-0 rounded-full" onClick={() => setCategory("all")}>{t.all}</Button>
+                {menuCategories.map((entry) => <Button type="button" aria-pressed={category === entry.id} key={entry.id} variant={category === entry.id ? "default" : "outline"} className="min-h-11 shrink-0 rounded-full" onClick={() => setCategory(entry.id)}>{getLocalizedText(entry.name, locale)}</Button>)}
+              </nav>
             </div>
-            <nav className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0" aria-label={locale === "bn" ? t.menu : "Menu categories"}>
-              <Button type="button" aria-pressed={category === "all"} variant={category === "all" ? "default" : "outline"} className="min-h-11 shrink-0 rounded-full" onClick={() => setCategory("all")}>{t.all}</Button>
-              {menuCategories.map((entry) => <Button type="button" aria-pressed={category === entry.id} key={entry.id} variant={category === entry.id ? "default" : "outline"} className="min-h-11 shrink-0 rounded-full" onClick={() => setCategory(entry.id)}>{getLocalizedText(entry.name, locale)}</Button>)}
-            </nav>
             <p className="mt-3 text-xs font-semibold text-muted-foreground" aria-live="polite">{filteredItems.length} {filteredItems.length === 1 ? t.result : t.results}</p>
 
             <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">

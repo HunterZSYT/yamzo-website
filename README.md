@@ -9,6 +9,7 @@ Production-oriented, bilingual ordering website for Yamzo Uttara. The applicatio
 - Checkout totals are recalculated against the authoritative database catalog.
 - Guest order tracking uses a high-entropy per-order token; a phone number alone is not authorization.
 - Live and test orders are isolated. Test orders do not count toward live revenue or reporting.
+- Website orders are retained operational records: staff can cancel them, but cannot delete them.
 - POS credentials and privileged Supabase keys must remain server/main-process only.
 
 ## Stack
@@ -132,5 +133,6 @@ Cloudflare proxying is intentionally record-specific: web records may be proxied
 - Never place a Supabase service-role key in the browser or Electron renderer.
 - Never identify order history by phone number alone.
 - Never count test orders in live reporting or Meta Purchase events.
+- Never delete an `app.orders` record; cancel it through the audited website-admin flow instead.
 - Never proxy mail/authentication DNS records through Cloudflare.
 - Never enable public ordering before business-hours enforcement, active POS menu reconciliation, and end-to-end order tests pass.

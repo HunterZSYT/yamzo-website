@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Globe2,
-  LoaderCircle,
   Mail,
   MapPin,
   Pencil,
@@ -40,7 +39,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -50,6 +67,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
 import type {
   AccountAddress,
   AccountOrder,
@@ -169,18 +187,25 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
   if (!snapshot) {
     return (
       <main className="min-h-screen bg-[#f5fbff] px-4 py-8 text-[#06334f] sm:px-6 sm:py-12">
-        <section className="mx-auto max-w-xl rounded-3xl border border-sky-100 bg-white p-6 text-center shadow-sm sm:p-8">
-          <ShieldAlert className="mx-auto size-10 text-amber-600" aria-hidden="true" />
-          <h1 className="mt-4 text-2xl font-black tracking-[-.04em]">
-            Your profile is temporarily unavailable
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            We could not safely load your saved account details. Please refresh and try again.
-          </p>
-          <Button asChild className="mt-6 min-h-11">
-            <Link href="/">Back to Yamzo</Link>
-          </Button>
-        </section>
+        <Card className="mx-auto max-w-xl border-sky-100 bg-white shadow-sm">
+          <CardContent className="p-6 sm:p-8">
+            <Empty className="min-h-56 border-sky-200 bg-sky-50/45">
+              <EmptyHeader>
+                <EmptyMedia variant="icon" className="bg-amber-50 text-amber-700">
+                  <ShieldAlert aria-hidden="true" />
+                </EmptyMedia>
+                <EmptyTitle>Your profile is temporarily unavailable</EmptyTitle>
+                <EmptyDescription>
+                  We could not safely load your saved account details. Refresh
+                  and try again.
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button asChild className="min-h-11">
+                <Link href="/">Back to Yamzo</Link>
+              </Button>
+            </Empty>
+          </CardContent>
+        </Card>
       </main>
     );
   }
@@ -381,7 +406,10 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5fbff] pb-16 text-[#06334f]">
+    <main
+      className="min-h-screen bg-[#f5fbff] pb-16 text-[#06334f]"
+      aria-busy={pendingAction !== null || undefined}
+    >
       <header className="border-b border-sky-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Button asChild variant="ghost" className="min-h-11 px-2 font-bold">
@@ -436,8 +464,8 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
           </p>
         ) : null}
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,.75fr)]">
-          <div className="grid gap-6">
+        <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,.75fr)]">
+          <div className="grid items-start gap-6">
             <Card className="rounded-3xl border-sky-100 bg-white shadow-sm">
               <CardHeader className="border-b border-sky-100">
                 <div className="flex items-start gap-3">
@@ -452,55 +480,60 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
                   </div>
                 </div>
               </CardHeader>
-              <form onSubmit={saveProfile}>
-                <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="account-display-name">Full name</Label>
-                    <Input
-                      id="account-display-name"
-                      value={displayName}
-                      autoComplete="name"
-                      minLength={2}
-                      maxLength={120}
-                      required
-                      disabled={isBusy("profile")}
-                      onChange={(event) => setDisplayName(event.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="account-email">Email address</Label>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <form onSubmit={saveProfile} aria-busy={isBusy("profile") || undefined}>
+                <CardContent className="pt-5">
+                  <FieldGroup className="grid gap-5 sm:grid-cols-2">
+                    <Field>
+                      <FieldLabel htmlFor="account-display-name">Full name</FieldLabel>
                       <Input
-                        id="account-email"
-                        value={email}
-                        readOnly
-                        aria-readonly="true"
-                        className="bg-muted pl-9 text-muted-foreground"
+                        id="account-display-name"
+                        value={displayName}
+                        autoComplete="name"
+                        minLength={2}
+                        maxLength={120}
+                        required
+                        disabled={isBusy("profile")}
+                        onChange={(event) => setDisplayName(event.target.value)}
                       />
-                    </div>
-                    <p className="text-xs leading-5 text-muted-foreground">Email is managed by secure sign-in and cannot be edited here.</p>
-                  </div>
-                  <div className="grid gap-2 sm:max-w-xs">
-                    <Label htmlFor="account-locale">Preferred language</Label>
-                    <Select
-                      value={preferredLocale}
-                      onValueChange={(value) => setPreferredLocale(value as "en" | "bn")}
-                      disabled={isBusy("profile")}
-                    >
-                      <SelectTrigger id="account-locale" className="h-10 w-full bg-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="bn">বাংলা</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="account-email">Email address</FieldLabel>
+                      <InputGroup className="h-10 bg-muted">
+                        <InputGroupAddon aria-hidden="true">
+                          <Mail />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="account-email"
+                          value={email}
+                          readOnly
+                          aria-readonly="true"
+                        />
+                      </InputGroup>
+                      <FieldDescription>
+                        Email is managed by secure sign-in and cannot be edited here.
+                      </FieldDescription>
+                    </Field>
+                    <Field className="sm:max-w-xs">
+                      <FieldLabel htmlFor="account-locale">Preferred language</FieldLabel>
+                      <Select
+                        value={preferredLocale}
+                        onValueChange={(value) => setPreferredLocale(value as "en" | "bn")}
+                        disabled={isBusy("profile")}
+                      >
+                        <SelectTrigger id="account-locale" className="h-10 w-full bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="bn">বাংলা</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </FieldGroup>
                 </CardContent>
                 <CardFooter className="justify-end">
                   <Button type="submit" disabled={isBusy("profile")} className="min-h-10">
-                    {isBusy("profile") ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+                    {isBusy("profile") ? <Spinner aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
                     Save profile
                   </Button>
                 </CardFooter>
@@ -521,7 +554,20 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
               </CardHeader>
               <CardContent className="pt-5">
                 {ongoingOrders.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/50 px-4 py-5 text-sm text-muted-foreground">No ongoing orders right now.</p>
+                  <Empty className="min-h-40 border-sky-200 bg-sky-50/45">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon" className="bg-white text-primary">
+                        <ShoppingBag aria-hidden="true" />
+                      </EmptyMedia>
+                      <EmptyTitle>No ongoing orders right now</EmptyTitle>
+                      <EmptyDescription>
+                        New website orders will appear here with their live status.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/order-status">Track an order</Link>
+                    </Button>
+                  </Empty>
                 ) : (
                   <div className="grid gap-3">
                     {ongoingOrders.map((order) => <OrderRow key={order.order_reference} order={order} />)}
@@ -544,7 +590,17 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
               </CardHeader>
               <CardContent className="pt-5">
                 {orderHistory.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/50 px-4 py-5 text-sm text-muted-foreground">Completed and cancelled orders will appear here.</p>
+                  <Empty className="min-h-36 border-sky-200 bg-sky-50/45">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon" className="bg-white text-primary">
+                        <ClipboardList aria-hidden="true" />
+                      </EmptyMedia>
+                      <EmptyTitle>Your order history is waiting</EmptyTitle>
+                      <EmptyDescription>
+                        Completed and cancelled website orders will stay here.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 ) : (
                   <div className="grid gap-3">
                     {orderHistory.map((order) => <OrderRow key={order.order_reference} order={order} />)}
@@ -584,7 +640,7 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
                     ))}
                   </div>
                 ) : null}
-                <form onSubmit={savePhone} className="grid gap-3 rounded-2xl bg-sky-50/65 p-3">
+                <form onSubmit={savePhone} className="grid gap-3 rounded-2xl bg-sky-50/65 p-3" aria-busy={isBusy("phone-save") || undefined}>
                   <div className="grid gap-2">
                     <Label htmlFor="account-phone">Phone number</Label>
                     <Input id="account-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="01712345678" value={phone} maxLength={13} required disabled={isBusy("phone-save")} onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 13))} />
@@ -598,7 +654,7 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
                     <Switch checked={phonePrimary} disabled={isBusy("phone-save")} onCheckedChange={setPhonePrimary} aria-label="Make this my primary phone" />
                   </label>
                   <Button type="submit" disabled={isBusy("phone-save")} className="min-h-10 w-full">
-                    {isBusy("phone-save") ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" />}
+                    {isBusy("phone-save") ? <Spinner aria-hidden="true" /> : <Plus aria-hidden="true" />}
                     Save phone
                   </Button>
                 </form>
@@ -619,12 +675,12 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
               </CardHeader>
               <CardContent className="grid gap-4">
                 {snapshot.addresses.length ? <div className="grid gap-2">{snapshot.addresses.map((savedAddress) => <div key={savedAddress.id} className="rounded-xl border border-sky-100 p-3"><div className="flex items-start gap-2"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-bold">{savedAddress.label}</p>{savedAddress.is_default ? <Badge variant="secondary">Default</Badge> : null}</div><p className="mt-1 text-xs leading-5 text-muted-foreground">House {savedAddress.house_number}, Road {savedAddress.road_number}, Sector {savedAddress.sector_number}, Flat {savedAddress.flat_number}</p></div><Button type="button" size="icon-xs" variant="ghost" aria-label={`Edit ${savedAddress.label} address`} onClick={() => editAddress(savedAddress)}><Pencil aria-hidden="true" /></Button><Button type="button" size="icon-xs" variant="ghost" aria-label={`Remove ${savedAddress.label} address`} disabled={isBusy(`address-remove-${savedAddress.id}`)} onClick={() => void runRpc(`address-remove-${savedAddress.id}`, () => createClient().schema("api").rpc("remove_my_delivery_address", { p_address_id: savedAddress.id }), "Delivery address removed.")}><Trash2 aria-hidden="true" /></Button></div></div>)}</div> : null}
-                <form onSubmit={saveAddress} className="grid gap-3 rounded-2xl bg-sky-50/65 p-3">
+                <form onSubmit={saveAddress} className="grid gap-3 rounded-2xl bg-sky-50/65 p-3" aria-busy={isBusy("address-save") || undefined}>
                   <div className="flex items-center justify-between gap-3"><p className="text-sm font-bold">{address.id ? "Edit delivery address" : "Add delivery address"}</p>{address.id ? <Button type="button" size="xs" variant="ghost" onClick={() => setAddress(emptyAddress)}>Cancel edit</Button> : null}</div>
                   <div className="grid gap-2"><Label htmlFor="account-address-label">Label</Label><Input id="account-address-label" value={address.label} maxLength={40} required disabled={isBusy("address-save")} onChange={(event) => setAddress((current) => ({ ...current, label: event.target.value }))} placeholder="Home" /></div>
                   <div className="grid grid-cols-2 gap-3"><div className="grid gap-2"><Label htmlFor="account-sector">Sector</Label><Input id="account-sector" inputMode="numeric" value={address.sector} maxLength={2} required disabled={isBusy("address-save")} onChange={(event) => setAddress((current) => ({ ...current, sector: event.target.value.replace(/\D/g, "").slice(0, 2) }))} /></div><div className="grid gap-2"><Label htmlFor="account-road">Road</Label><Input id="account-road" inputMode="numeric" value={address.road} maxLength={40} required disabled={isBusy("address-save")} onChange={(event) => setAddress((current) => ({ ...current, road: event.target.value.replace(/\D/g, "").slice(0, 40) }))} /></div><div className="grid gap-2"><Label htmlFor="account-house">House</Label><Input id="account-house" inputMode="numeric" value={address.house} maxLength={40} required disabled={isBusy("address-save")} onChange={(event) => setAddress((current) => ({ ...current, house: event.target.value.replace(/\D/g, "").slice(0, 40) }))} /></div><div className="grid gap-2"><Label htmlFor="account-flat">Flat</Label><Input id="account-flat" value={address.flat} maxLength={40} required disabled={isBusy("address-save")} onChange={(event) => setAddress((current) => ({ ...current, flat: event.target.value }))} /></div></div>
                   <label className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-sky-100 bg-white px-3 py-2 text-sm font-semibold">Use as my default address<Switch checked={address.makeDefault} disabled={isBusy("address-save")} onCheckedChange={(checked) => setAddress((current) => ({ ...current, makeDefault: checked }))} aria-label="Use as my default delivery address" /></label>
-                  <Button type="submit" disabled={isBusy("address-save")} className="min-h-10 w-full">{isBusy("address-save") ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : address.id ? <CheckCircle2 aria-hidden="true" /> : <Plus aria-hidden="true" />}{address.id ? "Update address" : "Save address"}</Button>
+                  <Button type="submit" disabled={isBusy("address-save")} className="min-h-10 w-full">{isBusy("address-save") ? <Spinner aria-hidden="true" /> : address.id ? <CheckCircle2 aria-hidden="true" /> : <Plus aria-hidden="true" />}{address.id ? "Update address" : "Save address"}</Button>
                 </form>
               </CardContent>
             </Card>
@@ -640,7 +696,7 @@ export function AccountClient({ email, snapshot }: AccountClientProps) {
 
             <Card className="rounded-3xl border-rose-100 bg-white shadow-sm">
               <CardHeader><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-rose-50 text-rose-700"><ShieldAlert aria-hidden="true" className="size-4.5" /></span><div><CardTitle className="text-lg font-bold">Account security</CardTitle><CardDescription className="mt-1 leading-5">Sign out on a shared device or permanently delete this customer account.</CardDescription></div></div></CardHeader>
-              <CardContent className="grid gap-3"><Button type="button" variant="outline" className="min-h-10 w-full" disabled={isBusy("sign-out")} onClick={signOut}>{isBusy("sign-out") ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : null}Sign out</Button><AlertDialog open={deletionOpen} onOpenChange={setDeletionOpen}><AlertDialogTrigger asChild><Button type="button" variant="destructive" className="min-h-10 w-full">Delete account</Button></AlertDialogTrigger><AlertDialogContent className="max-w-md"><AlertDialogHeader><AlertDialogTitle>Delete this Yamzo account?</AlertDialogTitle><AlertDialogDescription>This is irreversible. Saved profile data, phones, addresses, and marketing consent will be removed. Existing order records stay retained for restaurant operations and legal obligations.</AlertDialogDescription></AlertDialogHeader><form onSubmit={deleteAccount} className="grid gap-4"><div className="grid gap-2"><Label htmlFor="delete-account-email">Type your account email</Label><Input id="delete-account-email" type="email" autoComplete="email" value={deletionEmail} onChange={(event) => setDeletionEmail(event.target.value)} required disabled={isBusy("account-delete")} /></div><div className="grid gap-2"><Label htmlFor="delete-account-confirmation">Type DELETE</Label><Input id="delete-account-confirmation" value={deletionPhrase} onChange={(event) => setDeletionPhrase(event.target.value)} required disabled={isBusy("account-delete")} /></div><AlertDialogFooter><AlertDialogCancel type="button" disabled={isBusy("account-delete")}>Keep account</AlertDialogCancel><Button type="submit" variant="destructive" disabled={isBusy("account-delete") || deletionEmail.trim().toLowerCase() !== email.toLowerCase() || deletionPhrase !== "DELETE"}>{isBusy("account-delete") ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}Delete permanently</Button></AlertDialogFooter></form></AlertDialogContent></AlertDialog></CardContent>
+              <CardContent className="grid gap-3"><Button type="button" variant="outline" className="min-h-10 w-full" disabled={isBusy("sign-out")} onClick={signOut}>{isBusy("sign-out") ? <Spinner aria-hidden="true" /> : null}Sign out</Button><AlertDialog open={deletionOpen} onOpenChange={setDeletionOpen}><AlertDialogTrigger asChild><Button type="button" variant="destructive" className="min-h-10 w-full">Delete account</Button></AlertDialogTrigger><AlertDialogContent className="max-w-md"><AlertDialogHeader><AlertDialogTitle>Delete this Yamzo account?</AlertDialogTitle><AlertDialogDescription>This is irreversible. Saved profile data, phones, addresses, and marketing consent will be removed. Existing order records stay retained for restaurant operations and legal obligations.</AlertDialogDescription></AlertDialogHeader><form onSubmit={deleteAccount} className="grid gap-4" aria-busy={isBusy("account-delete") || undefined}><div className="grid gap-2"><Label htmlFor="delete-account-email">Type your account email</Label><Input id="delete-account-email" type="email" autoComplete="email" value={deletionEmail} onChange={(event) => setDeletionEmail(event.target.value)} required disabled={isBusy("account-delete")} /></div><div className="grid gap-2"><Label htmlFor="delete-account-confirmation">Type DELETE</Label><Input id="delete-account-confirmation" value={deletionPhrase} onChange={(event) => setDeletionPhrase(event.target.value)} required disabled={isBusy("account-delete")} /></div><AlertDialogFooter><AlertDialogCancel type="button" disabled={isBusy("account-delete")}>Keep account</AlertDialogCancel><Button type="submit" variant="destructive" disabled={isBusy("account-delete") || deletionEmail.trim().toLowerCase() !== email.toLowerCase() || deletionPhrase !== "DELETE"}>{isBusy("account-delete") ? <Spinner aria-hidden="true" /> : <Trash2 aria-hidden="true" />}Delete permanently</Button></AlertDialogFooter></form></AlertDialogContent></AlertDialog></CardContent>
             </Card>
           </aside>
         </div>

@@ -11,7 +11,6 @@ import {
   adminOrderArrivalResponseSchema,
   adminOrderMutationInputSchema,
   adminOrderMutationResponseSchema,
-  adminTestOrderDeleteInputSchema,
   parseAdminOrderDetail,
   toAdminOrderMutationPayload,
 } from "@/lib/admin/order-contract";
@@ -70,18 +69,14 @@ const adminErrorMessages: Record<string, string> = {
   ORDER_NOT_FOUND: "That order no longer exists.",
   ORDER_ALREADY_ARCHIVED: "This live order is already archived.",
   LIVE_ORDER_NOT_FOUND: "That live order no longer exists.",
-  LIVE_ARCHIVE_NOTE_REQUIRED: "Add a short archive reason for this live order.",
+  LIVE_ARCHIVE_NOTE_REQUIRED: "Add a short cancellation reason for this live order.",
   ORDER_VERSION_MUST_INCREMENT: "This order changed elsewhere. Refresh before trying again.",
   INVALID_ORDER_UPDATE_REQUEST: "Check the order update and try again.",
   INVALID_ORDER_ITEMS: "One or more order items are invalid.",
   INVALID_ORDER_ADJUSTMENT: "Check the discount or delivery fee.",
   ORDER_TOTAL_TOO_LARGE: "That order total is outside the safe limit.",
   NO_ORDER_CHANGE_REQUESTED: "Make a change before saving this order.",
-  TEST_ORDER_DELETE_PERMISSION_REQUIRED:
-    "Your role cannot permanently delete test orders.",
-  TEST_ORDER_NOT_FOUND: "That test order no longer exists.",
-  DELETE_CONFIRMATION_MISMATCH: "Type the exact delete confirmation before continuing.",
-  SAFE_DELETE_REASON_REQUIRED: "Choose a safe reason for deleting the test order.",
+  CANCELLATION_REASON_REQUIRED: "Add a short cancellation reason.",
 };
 
 function failed(message: string): AdminActionState {
@@ -408,46 +403,8 @@ export async function archiveLiveWebsiteOrderAction(
   revalidatePath("/order-status");
   return {
     status: "success",
-    message: "Live order cancelled and archived. Its audit history remains available.",
+    message: "Live order cancelled and retained in history. Nothing was deleted.",
     orderId: result.data.order_id,
     version: result.data.version,
-  };
-}
-
-export async function hardDeleteTestOrderAction(
-  input: unknown,
-): Promise<AdminOrderMutationActionResult> {
-  const parsed = adminTestOrderDeleteInputSchema.safeParse(input);
-  if (!parsed.success) {
-    return actionFailure(parsed.error.issues[0]?.message ?? "Check the test-order deletion.");
-  }
-  if (parsed.data.confirmation !== `DELETE ${parsed.data.expectedReference}`) {
-    return actionFailure("Type the exact delete confirmation before continuing.");
-  }
-
-  const authorized = await authorizeAdminMutation("orders.test_delete");
-  if (!authorized) {
-    return actionFailure("An active staff account with orders.test_delete is required.");
-  }
-
-  const { data, error } = await authorized.client
-    .schema("api")
-    .rpc("hard_delete_test_order", {
-      p_order_id: parsed.data.orderId,
-      p_expected_reference: parsed.data.expectedReference,
-      p_reason_code: parsed.data.reasonCode,
-      p_confirmation: parsed.data.confirmation,
-    });
-  if (error || data !== true) {
-    return actionFailure(error ? databaseMessage(error.message) : "The test order was not deleted.");
-  }
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/orders");
-  return {
-    status: "success",
-    message: "Test order permanently deleted. Its non-PII tombstone remains audited.",
-    orderId: parsed.data.orderId,
-    version: 0,
   };
 }

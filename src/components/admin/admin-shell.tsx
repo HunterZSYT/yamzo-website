@@ -23,25 +23,23 @@ import type {
   AdminDashboardSnapshot,
 } from "@/lib/admin/types";
 
-import { AdminManagementSections } from "./management-sections";
 import { AdminOrderQueue } from "./order-queue";
 import { AdminOverview } from "./overview";
-import { RuntimeSettingsCard } from "./runtime-settings-card";
 
 const navigation = [
-  { key: "overview", href: "#overview", label: "Overview", icon: LayoutDashboard },
+  { key: "overview", href: "/admin", label: "Overview", icon: LayoutDashboard },
   { key: "orders", href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-  { key: "menu", href: "#menu", label: "Menu", icon: UtensilsCrossed },
-  { key: "banners", href: "#banners", label: "Banners", icon: ImageIcon },
-  { key: "offers", href: "#offers", label: "Offers", icon: BadgePercent },
-  { key: "hours", href: "#hours", label: "Hours", icon: Clock3 },
-  { key: "people", href: "#people", label: "People", icon: Users },
+  { key: "menu", href: "/admin/menu", label: "Menu", icon: UtensilsCrossed },
+  { key: "banners", href: "/admin/banners", label: "Banners", icon: ImageIcon },
+  { key: "offers", href: "/admin/offers", label: "Offers", icon: BadgePercent },
+  { key: "hours", href: "/admin/hours", label: "Hours", icon: Clock3 },
+  { key: "people", href: "/admin/people", label: "People", icon: Users },
   { key: "customers", href: "/admin/customers", label: "Customers", icon: Users },
-  { key: "meta", href: "#meta", label: "Meta", icon: Megaphone },
-  { key: "settings", href: "#settings", label: "Settings", icon: Settings2 },
+  { key: "meta", href: "/admin/meta", label: "Meta", icon: Megaphone },
+  { key: "settings", href: "/admin/settings", label: "Settings", icon: Settings2 },
 ] as const;
 
-type AdminShellSection = "overview" | "orders" | "customers";
+export type AdminShellSection = (typeof navigation)[number]["key"];
 
 export function AdminShell({
   viewer,
@@ -215,12 +213,9 @@ export function AdminShell({
               <>
                 <AdminOverview snapshot={snapshot} />
 
-                <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(21rem,0.75fr)]">
+                <div className="mt-6">
                   <AdminOrderQueue viewer={viewer} snapshot={snapshot} />
-                  <RuntimeSettingsCard viewer={viewer} snapshot={snapshot} />
                 </div>
-
-                <AdminManagementSections viewer={viewer} snapshot={snapshot} />
               </>
             )}
           </main>

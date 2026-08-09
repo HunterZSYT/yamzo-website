@@ -93,52 +93,55 @@ export const adminOrderDetailResponseSchema = z.object({
   mutation_audits: z.array(mutationAuditSchema).max(250),
 });
 
-export const adminOrderMutationInputSchema = z.object({
-  orderId: uuid,
-  expectedVersion: z.number().int().min(1),
-  toStatus: z.enum(ADMIN_ORDER_STATUSES).nullable(),
-  discountMinor: z.number().int().min(0).max(1_000_000_000).nullable(),
-  deliveryFeeMinor: z.number().int().min(0).max(1_000_000_000).nullable(),
-  note: z.string().trim().max(500).nullable(),
-  items: z
-    .array(
-      z.object({
-        sourceItemId: uuid.nullable(),
-        itemNameEn: z.string().trim().min(1).max(160),
-        itemNameBn: z.string().trim().min(1).max(160),
-        quantity: z.number().int().min(1).max(20),
-        unitPriceMinor: z.number().int().min(0).max(1_000_000),
-        customerNote: z.string().trim().max(300).nullable(),
-        modifiers: z
-          .array(
-            z.object({
-              sourceOptionId: uuid.nullable(),
-              groupNameEn: z.string().trim().min(1).max(160),
-              groupNameBn: z.string().trim().min(1).max(160),
-              optionNameEn: z.string().trim().min(1).max(160),
-              optionNameBn: z.string().trim().min(1).max(160),
-              priceDeltaMinor: z.number().int().min(0).max(100_000),
-            }),
-          )
-          .max(20),
-      }),
-    )
-    .min(1)
-    .max(60)
-    .nullable(),
-});
+export const adminOrderMutationInputSchema = z
+  .object({
+    orderId: uuid,
+    expectedVersion: z.number().int().min(1),
+    toStatus: z.enum(ADMIN_ORDER_STATUSES).nullable(),
+    discountMinor: z.number().int().min(0).max(1_000_000_000).nullable(),
+    deliveryFeeMinor: z.number().int().min(0).max(1_000_000_000).nullable(),
+    note: z.string().trim().max(500).nullable(),
+    items: z
+      .array(
+        z.object({
+          sourceItemId: uuid.nullable(),
+          itemNameEn: z.string().trim().min(1).max(160),
+          itemNameBn: z.string().trim().min(1).max(160),
+          quantity: z.number().int().min(1).max(20),
+          unitPriceMinor: z.number().int().min(0).max(1_000_000),
+          customerNote: z.string().trim().max(300).nullable(),
+          modifiers: z
+            .array(
+              z.object({
+                sourceOptionId: uuid.nullable(),
+                groupNameEn: z.string().trim().min(1).max(160),
+                groupNameBn: z.string().trim().min(1).max(160),
+                optionNameEn: z.string().trim().min(1).max(160),
+                optionNameBn: z.string().trim().min(1).max(160),
+                priceDeltaMinor: z.number().int().min(0).max(100_000),
+              }),
+            )
+            .max(20),
+        }),
+      )
+      .min(1)
+      .max(60)
+      .nullable(),
+  })
+  .superRefine((value, context) => {
+    if (value.toStatus === "cancelled" && (value.note?.trim().length ?? 0) < 2) {
+      context.addIssue({
+        code: "custom",
+        path: ["note"],
+        message: "Add a short cancellation reason.",
+      });
+    }
+  });
 
 export const adminOrderArchiveInputSchema = z.object({
   orderId: uuid,
   expectedVersion: z.number().int().min(1),
   note: z.string().trim().min(2).max(500),
-});
-
-export const adminTestOrderDeleteInputSchema = z.object({
-  orderId: uuid,
-  expectedReference: z.string().regex(/^YZ-[0-9]{8}-[0-9]{8}$/),
-  reasonCode: z.string().regex(/^[A-Z0-9_:-]{2,80}$/),
-  confirmation: z.string().max(100),
 });
 
 export const adminOrderMutationResponseSchema = z.object({

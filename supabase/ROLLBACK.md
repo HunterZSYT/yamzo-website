@@ -26,6 +26,7 @@ snapshots, status events, `private.order_contacts`, audit rows, print jobs, and
 outbox state. Storage bucket deletion is a separate destructive operation and
 is never part of an automatic schema rollback.
 
-The only intentional hard-delete path is
-`api.hard_delete_test_order`; it rejects live orders, requires an exact order
-reference confirmation, and retains a non-PII audit tombstone.
+Order deletion is disabled for every `app.orders` record, including test
+orders. Operators must use the audited cancellation/status flow instead; the
+retained `api.hard_delete_test_order` compatibility stub always fails and the
+database delete trigger rejects direct deletes.
