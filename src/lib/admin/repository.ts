@@ -12,6 +12,7 @@ import {
   type AdminDashboardSnapshot,
   type AdminOperationsSnapshot,
   type AdminOrderSummary,
+  type AdminOrderWorkspaceSnapshot,
   type AdminStaffSummary,
 } from "./types";
 
@@ -40,6 +41,7 @@ const orderSchema = z.object({
   placed_at: z.string().datetime({ offset: true }),
   accepted_at: z.string().datetime({ offset: true }).nullable(),
   completed_at: z.string().datetime({ offset: true }).nullable(),
+  archived_at: z.string().datetime({ offset: true }).nullable().optional().default(null),
 });
 
 const staffSchema = z.object({
@@ -241,6 +243,7 @@ type RepositoryContext = {
 
 export interface AdminRepository {
   getDashboardSnapshot(): Promise<AdminDashboardSnapshot>;
+  getOrderWorkspaceSnapshot(): Promise<AdminOrderWorkspaceSnapshot>;
 }
 
 function hasPermission(viewer: ActiveAdminViewer, permission: string) {
@@ -275,6 +278,7 @@ function mapOrders(value: unknown): AdminOrderSummary[] | null {
     placedAt: order.placed_at,
     acceptedAt: order.accepted_at,
     completedAt: order.completed_at,
+    archivedAt: order.archived_at,
   }));
 }
 
@@ -465,6 +469,52 @@ async function loadContentCounts(): Promise<AdminContentCounts> {
 
 class SupabaseAdminRepository implements AdminRepository {
   constructor(private readonly context: RepositoryContext) {}
+
+  async getOrderWorkspaceSnapshot(): Promise<AdminOrderWorkspaceSnapshot> {
+    const canReadOrders = hasPermission(this.context.viewer, "orders.read");
+    const generatedAt = new Date().toISOString();
+
+    if (!canReadOrders) {
+      return {
+        generatedAt,
+        availability: "permission_required",
+        orders: [],
+      };
+    }
+
+    if (!this.context.backendReady) {
+      return {
+        generatedAt,
+        availability: "unavailable",
+        orders: [],
+      };
+    }
+
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .schema("api")
+        .rpc("list_website_orders_for_operations", {
+          p_status: null,
+          p_mode: null,
+          p_include_archived: true,
+          p_limit: 100,
+        });
+      const orders = error ? null : mapOrders(data);
+
+      return {
+        generatedAt,
+        availability: orders ? "ready" : "unavailable",
+        orders: orders ?? [],
+      };
+    } catch {
+      return {
+        generatedAt,
+        availability: "unavailable",
+        orders: [],
+      };
+    }
+  }
 
   async getDashboardSnapshot(): Promise<AdminDashboardSnapshot> {
     const safeRuntime = {

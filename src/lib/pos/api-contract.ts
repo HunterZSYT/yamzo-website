@@ -31,6 +31,19 @@ export const claimOrdersRequestSchema = z
   })
   .strict();
 
+/**
+ * The read-only POS mirror deliberately has its own contract instead of
+ * widening the legacy claim endpoint. A terminal only receives snapshots and
+ * can acknowledge print jobs; it cannot claim, accept, or transition orders.
+ */
+export const syncOrdersRequestSchema = z
+  .object({
+    cursor: z.string().max(200).nullable().optional(),
+    limit: z.number().int().min(1).max(50).default(50),
+    includeTest: z.boolean().default(false),
+  })
+  .strict();
+
 export const posOrderStatusSchema = z.enum([
   "accepted",
   "preparing",
@@ -118,6 +131,84 @@ export const rawClaimedOrderSchema = z.object({
 });
 
 export type RawClaimedOrder = z.infer<typeof rawClaimedOrderSchema>;
+
+const websiteOrderStatusSchema = z.enum([
+  "placed",
+  "pending_acceptance",
+  "accepted",
+  "preparing",
+  "ready",
+  "out_for_delivery",
+  "delivered",
+  "rejected",
+  "cancelled",
+]);
+
+const rawSyncedModifierSchema = z.object({
+  source_option_id: z.string().uuid().nullable(),
+  group_name_en: z.string().trim().min(1).max(160),
+  group_name_bn: z.string().trim().min(1).max(160),
+  option_name_en: z.string().trim().min(1).max(160),
+  option_name_bn: z.string().trim().min(1).max(160),
+  price_delta_minor: z.number().int().min(0),
+});
+
+const rawSyncedOrderItemSchema = z.object({
+  id: z.string().uuid(),
+  // Manually adjusted items intentionally have no active catalogue record.
+  source_item_id: z.string().uuid().nullable(),
+  source_item_public_key: z
+    .string()
+    .regex(/^[a-z][a-z0-9_]{2,79}$/)
+    .nullable(),
+  source_item_slug: z.string().trim().min(1).max(160).nullable(),
+  name_en: z.string().trim().min(1).max(160),
+  name_bn: z.string().trim().min(1).max(160),
+  quantity: z.number().int().min(1).max(99),
+  unit_price_minor: z.number().int().min(0),
+  modifier_unit_total_minor: z.number().int().min(0),
+  effective_unit_price_minor: z.number().int().min(0),
+  line_total_minor: z.number().int().min(0),
+  customer_note: z.string().max(300).nullable(),
+  modifiers: z.array(rawSyncedModifierSchema).max(40),
+});
+
+/**
+ * Current website-owned order state. The POS persists this as a local print
+ * mirror and maps statuses for its own read-only display; this server contract
+ * never reinterprets a remote status as a POS action.
+ */
+export const rawSyncedOrderSchema = z.object({
+  order_id: z.string().uuid(),
+  order_reference: z.string().trim().min(3).max(80),
+  mode: z.enum(["live", "test"]),
+  status: websiteOrderStatusSchema,
+  version: z.number().int().min(1),
+  locale: z.enum(["en", "bn"]),
+  subtotal_minor: z.number().int().min(0),
+  discount_minor: z.number().int().min(0),
+  delivery_fee_minor: z.number().int().min(0),
+  grand_total_minor: z.number().int().min(0),
+  currency_code: z.literal("BDT"),
+  customer_note: z.string().max(500).nullable(),
+  placed_at: z.string().datetime({ offset: true }),
+  accepted_at: z.string().datetime({ offset: true }).nullable(),
+  completed_at: z.string().datetime({ offset: true }).nullable(),
+  cancelled_at: z.string().datetime({ offset: true }).nullable(),
+  archived_at: z.string().datetime({ offset: true }).nullable(),
+  updated_at: z.string().datetime({ offset: true }),
+  contact: z.object({
+    full_name: z.string().trim().min(1).max(120),
+    phone_e164: z.string().regex(/^\+8801[3-9]\d{8}$/),
+    sector_number: z.number().int().min(1).max(99),
+    road_number: z.string().trim().min(1).max(80),
+    house_number: z.string().trim().min(1).max(80),
+    flat_number: z.string().trim().min(1).max(80),
+  }),
+  items: z.array(rawSyncedOrderItemSchema).min(1).max(100),
+});
+
+export type RawSyncedOrder = z.infer<typeof rawSyncedOrderSchema>;
 
 export const posOrderSnapshotSchema = z.object({
   remoteId: z.string().uuid(),

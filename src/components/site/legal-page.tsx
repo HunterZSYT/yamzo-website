@@ -1,11 +1,21 @@
-import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { PublicNavigationMenu } from "@/components/site/public-navigation-menu";
+import { getSiteAccess } from "@/lib/auth/access";
 
-export function LegalPage({ title, summary, children }: { title: string; summary: string; children: ReactNode }) {
+export async function LegalPage({
+  title,
+  summary,
+  children,
+}: {
+  title: string;
+  summary: string;
+  children: ReactNode;
+}) {
+  const access = await getSiteAccess();
+
   return (
     <div className="min-h-svh bg-[radial-gradient(circle_at_top_right,rgba(34,168,221,.13),transparent_30%),#f6fbfe]">
       <header className="border-b border-sky-100 bg-white/90 backdrop-blur-xl">
@@ -14,7 +24,10 @@ export function LegalPage({ title, summary, children }: { title: string; summary
             <Image src="/brand/yamzo-logo.png" alt="Yamzo Uttara" width={44} height={44} className="size-11 rounded-xl object-contain" />
             <span className="text-sm font-black">Yamzo Uttara</span>
           </Link>
-          <Button asChild variant="ghost"><Link href="/"><ArrowLeft aria-hidden="true" />Back</Link></Button>
+          <PublicNavigationMenu
+            nextPath="/"
+            isAuthenticated={access.viewer.isAuthenticated}
+          />
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">

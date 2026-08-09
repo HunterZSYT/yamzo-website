@@ -19,7 +19,6 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
-  UserRound,
   Waves,
   X,
 } from "lucide-react";
@@ -30,6 +29,7 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PublicNavigationMenu } from "@/components/site/public-navigation-menu";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
 import {
   Dialog,
@@ -245,12 +245,18 @@ function formatOfferValue(offer: StorefrontOffer, locale: Locale) {
   return locale === "bn" ? `${percentage}% ছাড়` : `${percentage}% off`;
 }
 
-function StoreHeader({ locale, setLocale, itemCount, onOpenCart, showMenu }: {
+function StoreHeader({
+  locale,
+  setLocale,
+  itemCount,
+  onOpenCart,
+  isAuthenticated,
+}: {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   itemCount: number;
   onOpenCart: () => void;
-  showMenu: boolean;
+  isAuthenticated: boolean;
 }) {
   const t = copy[locale];
   return (
@@ -264,11 +270,6 @@ function StoreHeader({ locale, setLocale, itemCount, onOpenCart, showMenu }: {
           </div>
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">
-          {showMenu ? <Button asChild variant="ghost"><a href="#menu">{t.menu}</a></Button> : null}
-          <Button asChild variant="ghost"><Link href="/order-status">{t.track}</Link></Button>
-        </nav>
-
         <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
@@ -280,13 +281,11 @@ function StoreHeader({ locale, setLocale, itemCount, onOpenCart, showMenu }: {
             <Languages aria-hidden="true" />
             <span className="font-bold">{locale === "en" ? "বাংলা" : "EN"}</span>
           </Button>
-          <Button asChild variant="outline" size="sm" className="hidden min-h-11 sm:inline-flex">
-            <Link href="/login?next=/"><UserRound aria-hidden="true" />{t.signIn}</Link>
-          </Button>
           <button type="button" onClick={onOpenCart} className="relative grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden" aria-label={`${t.cart}, ${itemCount} items`}>
             <ShoppingBag aria-hidden="true" className="size-5" />
             {itemCount > 0 ? <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[0.65rem] font-black text-accent-foreground">{itemCount}</span> : null}
           </button>
+          <PublicNavigationMenu nextPath="/" isAuthenticated={isAuthenticated} />
         </div>
       </div>
     </header>
@@ -959,7 +958,7 @@ export function Storefront({ access, reviews, catalog, merchandising }: {
         setLocale={setLocale}
         itemCount={itemCount}
         onOpenCart={() => setMobileCartOpen(true)}
-        showMenu={hasMenuSection}
+        isAuthenticated={access.viewer.isAuthenticated}
       />
       <main>
         {!hasHeroSection ? <ServiceAssurances locale={locale} /> : null}

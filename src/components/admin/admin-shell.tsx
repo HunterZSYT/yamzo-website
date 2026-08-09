@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { signOut } from "@/app/auth/actions";
 import { Badge } from "@/components/ui/badge";
@@ -28,23 +29,30 @@ import { AdminOverview } from "./overview";
 import { RuntimeSettingsCard } from "./runtime-settings-card";
 
 const navigation = [
-  { href: "#overview", label: "Overview", icon: LayoutDashboard },
-  { href: "#orders", label: "Orders", icon: ShoppingBag },
-  { href: "#menu", label: "Menu", icon: UtensilsCrossed },
-  { href: "#banners", label: "Banners", icon: ImageIcon },
-  { href: "#offers", label: "Offers", icon: BadgePercent },
-  { href: "#hours", label: "Hours", icon: Clock3 },
-  { href: "#people", label: "People", icon: Users },
-  { href: "#meta", label: "Meta", icon: Megaphone },
-  { href: "#settings", label: "Settings", icon: Settings2 },
+  { key: "overview", href: "#overview", label: "Overview", icon: LayoutDashboard },
+  { key: "orders", href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { key: "menu", href: "#menu", label: "Menu", icon: UtensilsCrossed },
+  { key: "banners", href: "#banners", label: "Banners", icon: ImageIcon },
+  { key: "offers", href: "#offers", label: "Offers", icon: BadgePercent },
+  { key: "hours", href: "#hours", label: "Hours", icon: Clock3 },
+  { key: "people", href: "#people", label: "People", icon: Users },
+  { key: "customers", href: "/admin/customers", label: "Customers", icon: Users },
+  { key: "meta", href: "#meta", label: "Meta", icon: Megaphone },
+  { key: "settings", href: "#settings", label: "Settings", icon: Settings2 },
 ] as const;
+
+type AdminShellSection = "overview" | "orders" | "customers";
 
 export function AdminShell({
   viewer,
   snapshot,
+  children,
+  activeSection = "overview",
 }: {
   viewer: ActiveAdminViewer;
   snapshot: AdminDashboardSnapshot;
+  children?: ReactNode;
+  activeSection?: AdminShellSection;
 }) {
   return (
     <div className="min-h-svh bg-[#f3f8fb] text-foreground">
@@ -78,19 +86,19 @@ export function AdminShell({
           </Link>
 
           <nav className="mt-8 flex flex-1 flex-col gap-1" aria-label="Admin sections">
-            {navigation.map(({ href, label, icon: Icon }, index) => (
-              <a
+            {navigation.map(({ href, label, icon: Icon, ...item }) => (
+              <Link
                 key={href}
                 href={href}
                 className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${
-                  index === 0
+                  item.key === activeSection
                     ? "bg-muted text-primary"
                     : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 }`}
               >
                 <Icon aria-hidden="true" className="size-4" />
                 {label}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -166,15 +174,19 @@ export function AdminShell({
               className="flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-2 lg:hidden"
               aria-label="Admin sections"
             >
-              {navigation.map(({ href, label, icon: Icon }) => (
-                <a
+              {navigation.map(({ href, label, icon: Icon, ...item }) => (
+                <Link
                   key={href}
                   href={href}
-                  className="flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-bold focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${
+                    item.key === activeSection
+                      ? "bg-muted text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   <Icon aria-hidden="true" className="size-3.5" />
                   {label}
-                </a>
+                </Link>
               ))}
             </nav>
           </header>
@@ -199,14 +211,18 @@ export function AdminShell({
               </div>
             ) : null}
 
-            <AdminOverview snapshot={snapshot} />
+            {children ?? (
+              <>
+                <AdminOverview snapshot={snapshot} />
 
-            <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(21rem,0.75fr)]">
-              <AdminOrderQueue viewer={viewer} snapshot={snapshot} />
-              <RuntimeSettingsCard viewer={viewer} snapshot={snapshot} />
-            </div>
+                <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(21rem,0.75fr)]">
+                  <AdminOrderQueue viewer={viewer} snapshot={snapshot} />
+                  <RuntimeSettingsCard viewer={viewer} snapshot={snapshot} />
+                </div>
 
-            <AdminManagementSections viewer={viewer} snapshot={snapshot} />
+                <AdminManagementSections viewer={viewer} snapshot={snapshot} />
+              </>
+            )}
           </main>
         </div>
       </div>

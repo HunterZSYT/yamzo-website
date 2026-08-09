@@ -43,7 +43,112 @@ export type AdminOrderSummary = {
   placedAt: string;
   acceptedAt: string | null;
   completedAt: string | null;
+  archivedAt: string | null;
 };
+
+export type AdminOrderContact = {
+  fullName: string;
+  phoneE164: string;
+  sectorNumber: number;
+  roadNumber: string;
+  houseNumber: string;
+  flatNumber: string;
+};
+
+export type AdminOrderModifier = {
+  sourceOptionId: string | null;
+  groupNameEn: string;
+  groupNameBn: string;
+  optionNameEn: string;
+  optionNameBn: string;
+  priceDeltaMinor: number;
+};
+
+export type AdminOrderLineItem = {
+  id: string;
+  sourceItemId: string | null;
+  sourceItemPublicKey: string | null;
+  sourceItemSlug: string | null;
+  nameEn: string;
+  nameBn: string;
+  quantity: number;
+  unitPriceMinor: number;
+  modifierUnitTotalMinor: number;
+  effectiveUnitPriceMinor: number;
+  lineTotalMinor: number;
+  customerNote: string | null;
+  modifiers: AdminOrderModifier[];
+};
+
+export type AdminOrderStatusEvent = {
+  id: number;
+  fromStatus: AdminOrderStatus | null;
+  toStatus: AdminOrderStatus;
+  actorType: "customer" | "staff" | "terminal" | "system";
+  note: string | null;
+  createdAt: string;
+};
+
+export type AdminOrderMutationAudit = {
+  id: number;
+  action: "order.admin_updated" | "order.live_archived";
+  fromVersion: number;
+  toVersion: number;
+  fromStatus: AdminOrderStatus;
+  toStatus: AdminOrderStatus;
+  note: string | null;
+  createdAt: string;
+};
+
+/**
+ * Deliberately returned only after an authorized staff member explicitly opens
+ * an order. The dashboard summary must never preload this customer data.
+ */
+export type AdminOrderDetail = AdminOrderSummary & {
+  locale: "en" | "bn";
+  subtotalMinor: number;
+  discountMinor: number;
+  deliveryFeeMinor: number;
+  customerNote: string | null;
+  cancelledAt: string | null;
+  contact: AdminOrderContact;
+  items: AdminOrderLineItem[];
+  statusEvents: AdminOrderStatusEvent[];
+  mutationAudits: AdminOrderMutationAudit[];
+};
+
+export type AdminOrderMutationInput = {
+  orderId: string;
+  expectedVersion: number;
+  toStatus: AdminOrderStatus | null;
+  discountMinor: number | null;
+  deliveryFeeMinor: number | null;
+  note: string | null;
+  items: Array<{
+    sourceItemId: string | null;
+    itemNameEn: string;
+    itemNameBn: string;
+    quantity: number;
+    unitPriceMinor: number;
+    customerNote: string | null;
+    modifiers: Array<{
+      sourceOptionId: string | null;
+      groupNameEn: string;
+      groupNameBn: string;
+      optionNameEn: string;
+      optionNameBn: string;
+      priceDeltaMinor: number;
+    }>;
+  }> | null;
+};
+
+export type AdminOrderArrivalCursor = {
+  placedAt: string;
+  orderId: string;
+};
+
+/** Keyset cursor for bounded, newest-first website-order history pages. */
+export type AdminOrderHistoryCursor = AdminOrderArrivalCursor;
 
 export type AdminStaffSummary = {
   staffId: string;
@@ -223,6 +328,17 @@ export type AdminDashboardSnapshot = {
   content: AdminContentCounts;
   operationsAvailability: AdminDataAvailability;
   operations: AdminOperationsSnapshot;
+};
+
+/**
+ * The dedicated order workspace receives a bounded server-side history rather
+ * than reusing the dashboard's compact arrival summary. Order contact data is
+ * intentionally absent until an authorized staff member opens a detail sheet.
+ */
+export type AdminOrderWorkspaceSnapshot = {
+  generatedAt: string;
+  availability: AdminDataAvailability;
+  orders: AdminOrderSummary[];
 };
 
 export type ActiveAdminViewer = {

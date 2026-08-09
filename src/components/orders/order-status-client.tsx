@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   Check,
   ChefHat,
   Clock3,
@@ -19,11 +18,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
+import { PublicNavigationMenu } from "@/components/site/public-navigation-menu";
 import { normalizeBangladeshPhoneInput } from "@/lib/orders/checkout-input";
 import type { OrderStatus, OrderSummary } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
@@ -62,10 +63,12 @@ type LookupResponse = {
 export function OrderStatusClient({
   initialOrder,
   authenticated,
+  googleAuthEnabled,
   turnstileSiteKey,
 }: {
   initialOrder: string | null;
   authenticated: boolean;
+  googleAuthEnabled: boolean;
   turnstileSiteKey: string | null;
 }) {
   const [phone, setPhone] = useState("");
@@ -74,6 +77,7 @@ export function OrderStatusClient({
   const [selectedId, setSelectedId] = useState<string | null>(initialOrder);
   const [loading, setLoading] = useState(Boolean(initialOrder));
   const [error, setError] = useState<string | null>(null);
+  const [signInError, setSignInError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = useState(0);
 
@@ -167,7 +171,10 @@ export function OrderStatusClient({
       <header className="border-b bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex h-17 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex min-h-11 items-center gap-2.5 rounded-xl"><Image src="/brand/yamzo-logo.png" alt="Yamzo Uttara" width={46} height={46} className="size-11 rounded-xl object-contain" /><span className="text-sm font-black">Yamzo Uttara</span></Link>
-          <Button asChild variant="ghost"><Link href="/"><ArrowLeft aria-hidden="true" />Back to menu</Link></Button>
+          <PublicNavigationMenu
+            nextPath="/order-status"
+            isAuthenticated={authenticated}
+          />
         </div>
       </header>
 
@@ -207,6 +214,27 @@ export function OrderStatusClient({
                     {loading ? "Checking…" : "Find my orders"}
                   </Button>
                 </form>
+                {!authenticated ? (
+                  <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/70 p-3.5">
+                    <p className="text-sm font-black tracking-[-.02em] text-[#06334f]">Save your order history</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">Sign in to keep orders tied to your account and view them securely from another device.</p>
+                    {googleAuthEnabled ? (
+                      <GoogleSignInButton
+                        nextPath="/order-status"
+                        className="mt-3 min-h-11 bg-white"
+                        onAttempt={() => setSignInError(null)}
+                        onError={setSignInError}
+                      >
+                        Continue with Google
+                      </GoogleSignInButton>
+                    ) : (
+                      <Button asChild variant="outline" className="mt-3 min-h-11 w-full bg-white">
+                        <Link href="/login?next=%2Forder-status">Sign in to save orders</Link>
+                      </Button>
+                    )}
+                    {signInError ? <p role="alert" className="mt-2 text-xs font-semibold leading-5 text-destructive">{signInError}</p> : null}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 

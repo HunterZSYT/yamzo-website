@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { OrderStatusClient } from "@/components/orders/order-status-client";
-import { hasSupabaseConfig } from "@/lib/env";
+import { hasSupabaseConfig, isGoogleAuthEnabled } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -26,6 +26,7 @@ export default async function OrderStatusPage({ searchParams }: {
     <OrderStatusClient
       initialOrder={order?.slice(0, 100) ?? null}
       authenticated={authenticated}
+      googleAuthEnabled={hasSupabaseConfig() && isGoogleAuthEnabled()}
       turnstileSiteKey={
         process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? null
       }
