@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Keep this auth recovery route request-rendered. It avoids a Vercel Next.js
+// packaging edge case for static App Router error routes and guarantees the
+// page is available after an interrupted sign-in flow.
+export const dynamic = "force-dynamic";
+
 export default function AuthErrorPage() {
   return (
     <main className="auth-simple-page">
